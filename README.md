@@ -15,7 +15,7 @@ aws cli and CF scripts
 ./aws-create-ec2.sh Y VPC-A
 
 
-To delete
+# To delete all resources
 Terminate all EC2 instances
 
 Delete all EBS volumes
