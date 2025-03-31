@@ -15,7 +15,9 @@ aws cli and CF scripts
 
 To delete
 Terminate all EC2 instances
+
 Delete all EBS volumes
+
 Delete VPC-B and VPC-C
 For VPC-A
 - delete nat gateway
