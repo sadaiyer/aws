@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'EC2 instances creation with security groups in existing VPC'
+
+Parameters:
+  VpcName:
+    Description: Name of the VPC (VPC-A, VPC-B, or VPC-C)
+    Type: String
+    AllowedValues:
+      - VPC-A
+      - VPC-B
+      - VPC-C
+    Default: VPC-A
+
+  KeyName:
+    Description: Name of an existing EC2 KeyPair
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: EC2-US-EAST-1
+
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t2.micro
+
+  AmiId:
+    Description: AMI ID for the EC2 instance
+    Type: String
+    Default: ami-071226ecf16aa7d96
+
+Resources:
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${VpcName}-SG
+      GroupDescription: !Sub ${VpcName}-SG
+      VpcId: 
+        Fn::ImportValue: !Sub ${VpcName}-VPCID
+      SecurityGroupIngress:
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.0.0.0/8
+      Tags:
+        - Key: Name
+          Value: !Sub ${VpcName}-SG
+
+  PrivateEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref AmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SecurityGroupIds: 
+        - !Ref SecurityGroup
+      SubnetId: 
+        Fn::ImportValue: !Sub ${VpcName}-PrivateSubnetID
+      BlockDeviceMappings:
+        - DeviceName: /dev/sdf
+          Ebs:
+            VolumeSize: 10
+            DeleteOnTermination: false
+      Tags:
+        - Key: Name
+          Value: ec2-private
+
+  PublicEC2Instance:
+    Type: AWS::EC2::Instance
+    Condition: IsVpcA
+    Properties:
+      ImageId: !Ref AmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SecurityGroupIds: 
+        - !Ref SecurityGroup
+      SubnetId: 
+        Fn::ImportValue: !Sub ${VpcName}-PublicSubnetID
+      BlockDeviceMappings:
+        - DeviceName: /dev/sdf
+          Ebs:
+            VolumeSize: 10
+            DeleteOnTermination: false
+      Tags:
+        - Key: Name
+          Value: ec2-public
+
+Conditions:
+  IsVpcA: !Equals 
+    - !Ref VpcName
+    - VPC-A
+
+Outputs:
+  SecurityGroupId:
+    Description: Security Group ID
+    Value: !Ref SecurityGroup
+
+  PrivateInstanceId:
+    Description: Private EC2 Instance ID
+    Value: !Ref PrivateEC2Instance
+
+  PublicInstanceId:
+    Condition: IsVpcA
+    Description: Public EC2 Instance ID (Only for VPC-A)
+    Value: !Ref PublicEC2Instance
