@@ -1,5 +1,12 @@
 # aws
-aws cli and CF scripts
+# Step 1: Create your VPC Accounts
+
+# Step2: Download the AWS CLI and configure AWS CLI
+https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+
+https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html
+
+aws s3 ls ---to test if AWS CLI is working
 
 # VPC-A
 ## VPC-A will have one public subnet, one private subnet, security group, IGW and Nat GW
